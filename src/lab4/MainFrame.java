@@ -1,21 +1,15 @@
-package lab3;
+package lab4;
 
 import java.awt.BorderLayout;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import javax.swing.AbstractAction;
-import javax.swing.Action;
-import javax.swing.JCheckBoxMenuItem;
-import javax.swing.JFileChooser;
-import javax.swing.JFrame;
-import javax.swing.JMenu;
-import javax.swing.JMenuBar;
-import javax.swing.JOptionPane;
+import javax.swing.*;
 import javax.swing.event.MenuEvent;
 import javax.swing.event.MenuListener;
 
@@ -34,6 +28,8 @@ public class MainFrame extends JFrame {
     // Флаг, указывающий на загруженность данных графика
     private boolean fileLoaded = false;
 
+    JMenuItem turnLeftItem;
+    JMenuItem showGridItem;
     public MainFrame() {
 // Вызов конструктора предка Frame
         super("Построение графиков функций на основе заранее подготовленных файлов");
@@ -50,6 +46,9 @@ public class MainFrame extends JFrame {
 // Добавить пункт меню "Файл"
         JMenu fileMenu = new JMenu("Файл");
         menuBar.add(fileMenu);
+
+
+
 // Создать действие по открытию файла
         Action openGraphicsAction = new AbstractAction("Открыть файл с графиком") {
             public void actionPerformed(ActionEvent event) {
@@ -74,6 +73,7 @@ public class MainFrame extends JFrame {
                 display.setShowAxis(showAxisMenuItem.isSelected());
             }
         };
+
         showAxisMenuItem = new JCheckBoxMenuItem(showAxisAction);
 // Добавить соответствующий элемент в меню
         graphicsMenu.add(showAxisMenuItem);
@@ -83,13 +83,48 @@ public class MainFrame extends JFrame {
         Action showMarkersAction = new AbstractAction("Показывать маркеры точек") {
             public void actionPerformed(ActionEvent event) {
 // по аналогии с showAxisMenuItem
-                display.setShowMarkers(showMarkersMenuItem.isSelected());
+                   display.setShowMarkers(showMarkersMenuItem.isSelected());
             }
         };
         showMarkersMenuItem = new JCheckBoxMenuItem(showMarkersAction);
         graphicsMenu.add(showMarkersMenuItem);
 // Элемент по умолчанию включен (отмечен флажком)
         showMarkersMenuItem.setSelected(true);
+
+        turnLeftItem = graphicsMenu.add(new JCheckBoxMenuItem("Поворот влево на 90°"));
+        turnLeftItem.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                display.setTurnGraph(turnLeftItem.isSelected());
+            }
+        });
+        showGridItem = graphicsMenu.add(new JCheckBoxMenuItem("Показать сетку"));
+        showGridItem.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                if (showGridItem.isSelected()) {
+                    String valueX = "0";
+                    String valueY = "5";
+
+//                    String valueX = JOptionPane.showInputDialog(MainFrame.this,
+//                            "Введите сколько знаков после запятой в Х:\nminX-" + display.getIncrX(), "Ограничение Х", JOptionPane.QUESTION_MESSAGE);
+//                    String valueY = JOptionPane.showInputDialog(MainFrame.this,
+//                            "Введите сколько знаков после запятой в Y:\nminY-" + display.getIncrY(), "Ограничение Y", JOptionPane.QUESTION_MESSAGE);
+                    if ((display.getIncrXDouble().intValue()==0 && display.getIncrXDouble()>Double.parseDouble(valueX) )||
+                            (display.getIncrYDouble().intValue()==0 && display.getIncrYDouble()>Double.parseDouble(valueY))) {
+                        JOptionPane.showMessageDialog(MainFrame.this,
+                                "В минимальном значении знак на дальнем разряде", "Ошибочный ввод числа знаков", JOptionPane.WARNING_MESSAGE);
+                        showGridItem.setSelected(false);
+                    }
+                    else {
+                        display.setXDigits(Integer.parseInt(valueX));
+                        display.setYDigits(Integer.parseInt(valueY));
+                        display.setShowGrid(showGridItem.isSelected());
+                    }
+                }
+                else
+                    display.setShowGrid(showGridItem.isSelected());
+            }
+        });
+
 // Зарегистрировать обработчик событий, связанных с меню "График"
         graphicsMenu.addMenuListener(new GraphicsMenuListener());
 // Установить GraphicsDisplay в цент граничной компоновки
@@ -156,6 +191,8 @@ Double.SIZE/8 байт;
 // Доступность или недоступность элементов меню "График" определяется загруженностью данных
             showAxisMenuItem.setEnabled(fileLoaded);
             showMarkersMenuItem.setEnabled(fileLoaded);
+            turnLeftItem.setEnabled(fileLoaded);
+            showGridItem.setEnabled(fileLoaded);
         }
 
         // Обработчик, вызываемый после того, как меню исчезло с экрана
