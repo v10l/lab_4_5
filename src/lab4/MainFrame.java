@@ -4,11 +4,8 @@ import java.awt.BorderLayout;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.DataInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
+import java.io.*;
+
 import javax.swing.*;
 import javax.swing.event.MenuEvent;
 import javax.swing.event.MenuListener;
@@ -30,6 +27,8 @@ public class MainFrame extends JFrame {
 
     JMenuItem turnLeftItem;
     JMenuItem showGridItem;
+    JMenuItem save;
+
     public MainFrame() {
 // Вызов конструктора предка Frame
         super("Построение графиков функций на основе заранее подготовленных файлов");
@@ -65,6 +64,20 @@ public class MainFrame extends JFrame {
         // Создать пункт меню "График"
         JMenu graphicsMenu = new JMenu("График");
         menuBar.add(graphicsMenu);
+        save = fileMenu.add(new JMenuItem("Сохранить значения графика"));
+        save.setEnabled(false);
+        save.addActionListener(e -> {
+            if (fileChooser == null) {
+                fileChooser = new JFileChooser();
+                fileChooser.setCurrentDirectory(new File("C:\\Users\\37529\\IdeaProjects\\qwe\\lab4"));
+            }
+            if (fileChooser.showSaveDialog(MainFrame.this)==JFileChooser.APPROVE_OPTION)
+                saveGraphics(fileChooser.getSelectedFile(), display.getGraphicsData());
+        });
+
+
+
+
         // Создать действие для реакции на активацию элемента "Показывать оси координат"
         Action showAxisAction = new AbstractAction("Показывать оси  координат") {
             public void actionPerformed(ActionEvent event) {
@@ -102,23 +115,17 @@ public class MainFrame extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 if (showGridItem.isSelected()) {
                     String valueX = "0";
-                    String valueY = "5";
+                    String valueY = "0";
 
 //                    String valueX = JOptionPane.showInputDialog(MainFrame.this,
 //                            "Введите сколько знаков после запятой в Х:\nminX-" + display.getIncrX(), "Ограничение Х", JOptionPane.QUESTION_MESSAGE);
 //                    String valueY = JOptionPane.showInputDialog(MainFrame.this,
 //                            "Введите сколько знаков после запятой в Y:\nminY-" + display.getIncrY(), "Ограничение Y", JOptionPane.QUESTION_MESSAGE);
-                    if ((display.getIncrXDouble().intValue()==0 && display.getIncrXDouble()>Double.parseDouble(valueX) )||
-                            (display.getIncrYDouble().intValue()==0 && display.getIncrYDouble()>Double.parseDouble(valueY))) {
-                        JOptionPane.showMessageDialog(MainFrame.this,
-                                "В минимальном значении знак на дальнем разряде", "Ошибочный ввод числа знаков", JOptionPane.WARNING_MESSAGE);
-                        showGridItem.setSelected(false);
-                    }
-                    else {
+
                         display.setXDigits(Integer.parseInt(valueX));
                         display.setYDigits(Integer.parseInt(valueY));
                         display.setShowGrid(showGridItem.isSelected());
-                    }
+
                 }
                 else
                     display.setShowGrid(showGridItem.isSelected());
@@ -193,6 +200,7 @@ Double.SIZE/8 байт;
             showMarkersMenuItem.setEnabled(fileLoaded);
             turnLeftItem.setEnabled(fileLoaded);
             showGridItem.setEnabled(fileLoaded);
+            save.setEnabled(display.changes);
         }
 
         // Обработчик, вызываемый после того, как меню исчезло с экрана
@@ -203,4 +211,22 @@ Double.SIZE/8 байт;
         public void menuCanceled(MenuEvent e) {
         }
     }
+
+    // сохранение
+    protected void saveGraphics (File selectedFile, Double[][] graphics) {
+        try (DataOutputStream out = new DataOutputStream(new FileOutputStream(selectedFile, false))) {
+
+            for (Double[] graphic : graphics) {
+                out.writeDouble(graphic[0]);
+                out.writeDouble(graphic[1]);
+            }
+
+        } catch (IOException exc) {
+            System.out.println("Ошибка записи в файл");
+            exc.printStackTrace();
+        }
+    }
+
+
+
 }
