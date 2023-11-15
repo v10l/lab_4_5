@@ -116,12 +116,6 @@ public class MainFrame extends JFrame {
                 if (showGridItem.isSelected()) {
                     String valueX = "0";
                     String valueY = "0";
-
-//                    String valueX = JOptionPane.showInputDialog(MainFrame.this,
-//                            "Введите сколько знаков после запятой в Х:\nminX-" + display.getIncrX(), "Ограничение Х", JOptionPane.QUESTION_MESSAGE);
-//                    String valueY = JOptionPane.showInputDialog(MainFrame.this,
-//                            "Введите сколько знаков после запятой в Y:\nminY-" + display.getIncrY(), "Ограничение Y", JOptionPane.QUESTION_MESSAGE);
-
                         display.setXDigits(Integer.parseInt(valueX));
                         display.setYDigits(Integer.parseInt(valueY));
                         display.setShowGrid(showGridItem.isSelected());
@@ -132,10 +126,15 @@ public class MainFrame extends JFrame {
             }
         });
 
+
 // Зарегистрировать обработчик событий, связанных с меню "График"
         graphicsMenu.addMenuListener(new GraphicsMenuListener());
 // Установить GraphicsDisplay в цент граничной компоновки
         getContentPane().add(display, BorderLayout.CENTER);
+
+    }
+    public void menuStatusOnline() {
+        save.setEnabled(display.changes);
     }
 
     // Считывание данных графика из существующего файла
@@ -189,6 +188,8 @@ Double.SIZE/8 байт;
         MainFrame frame = new MainFrame();
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setVisible(true);
+        while(frame.isVisible())
+            frame.menuStatusOnline();
     }
 
     // Класс-слушатель событий, связанных с отображением меню
@@ -196,10 +197,10 @@ Double.SIZE/8 байт;
         // Обработчик, вызываемый перед показом меню
         public void menuSelected(MenuEvent e) {
 // Доступность или недоступность элементов меню "График" определяется загруженностью данных
-            showAxisMenuItem.setEnabled(fileLoaded);
-            showMarkersMenuItem.setEnabled(fileLoaded);
             turnLeftItem.setEnabled(fileLoaded);
+            showAxisMenuItem.setEnabled(fileLoaded);
             showGridItem.setEnabled(fileLoaded);
+            showMarkersMenuItem.setEnabled(fileLoaded);
             save.setEnabled(display.changes);
         }
 

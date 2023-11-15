@@ -390,63 +390,107 @@ public class GraphicsDisplay extends JPanel {
         canvas.translate(0, getHeight());
         canvas.rotate(-Math.PI/2);
     }
-    protected void paintGrids(Graphics2D canvas) {
-
-        canvas.setStroke(gridStroke);
-        canvas.setColor(Color.gray.darker());
-
-        double pos = this.viewport[0][0];
-        double step;
-        for(step = (viewport[1][0] - viewport[0][0]) / 10.0D; pos < viewport[1][0]; pos += step) {
-            canvas.draw(new Line2D.Double(xyToPoint(pos, viewport[0][1]), xyToPoint(pos, viewport[1][1])));
-        }
-
-        canvas.draw(new Line2D.Double(xyToPoint(viewport[1][0], viewport[0][1]), xyToPoint(viewport[1][0], viewport[1][1])));
-        pos = viewport[1][1];
-
-        for(step = (viewport[0][1] - viewport[1][1]) / 10.0D; pos < viewport[0][1]; pos += step) {
-            canvas.draw(new Line2D.Double(xyToPoint(viewport[0][0], pos), xyToPoint(viewport[1][0], pos)));
-        }
-
-        canvas.draw(new Line2D.Double(xyToPoint(viewport[0][0], viewport[0][1]), xyToPoint(viewport[1][0], viewport[0][1])));
-
-        canvas.setColor(Color.yellow.brighter());
+    protected void paintGrids(Graphics2D canvas){
         canvas.setFont(gridFont);
         FontRenderContext context = canvas.getFontRenderContext();
+        canvas.setColor(Color.gray);
+        double currentValueX=0;
+        double currentValueY=0;
+        double incrementX = (maxX-minX)/20;
+        double incrementY = (maxY-minY)/20;
+        double incrementXIn = Double.parseDouble(formatter.format(incrementX).replace(',', '.'))/10;
+        double incrementYIn = Double.parseDouble(formatter.format(incrementY).replace(',', '.'))/10;
+        double currentValueXModified = -Double.parseDouble(formatter.format(incrementX).replace(',', '.'));
+        double currentValueYModified = -Double.parseDouble(formatter.format(incrementY).replace(',', '.'));
+        int counter;
+        double currentValueXIn;
+        double currentValueYIn;
 
-        double labelY;
-        if (viewport[1][1] < 0.0 &&  0.0 < viewport[0][1] && showAxis)
-            labelY = 0.0;
-        else
-            labelY = viewport[1][1];
+        while((currentValueX<maxX || currentValueY<maxY) || (-currentValueX>minX || -currentValueY>minY)) {
+            canvas.setStroke(gridStroke);
+            String formattedDoubleX = formatter.format(currentValueX);
+            String formattedDoubleY = formatter.format(currentValueY);
+            canvas.draw(new Line2D.Double(xyToPoint(currentValueX,minY),xyToPoint(currentValueX,maxY)));
+            canvas.draw(new Line2D.Double(xyToPoint(-currentValueX,minY),xyToPoint(-currentValueX,maxY)));
+            canvas.draw(new Line2D.Double(xyToPoint(minX,currentValueY),xyToPoint(maxX,currentValueY)));
+            canvas.draw(new Line2D.Double(xyToPoint(minX,-currentValueY),xyToPoint(maxX,-currentValueY)));
+            Rectangle2D boundsX = gridFont.getStringBounds(formattedDoubleX,context);
+            Rectangle2D boundsY = gridFont.getStringBounds(formattedDoubleY,context);
+            Point2D.Double labelPosXRight = xyToPoint(-currentValueXModified,0);
+            Point2D.Double labelPosXLeft = xyToPoint(currentValueXModified,0);
+            Point2D.Double labelPosYUp = xyToPoint(0,currentValueY);
+            Point2D.Double labelPosYDown = xyToPoint(0,currentValueYModified);
+            canvas.drawString(formatter.format(-currentValueXModified),(float)(labelPosXRight.getX()-15),
+                    (float)(labelPosXRight.getY())-5);
+            canvas.drawString(formatter.format(currentValueXModified),(float)(labelPosXLeft.getX()-boundsX.getX()-15),
+                    (float)(labelPosXLeft.getY())-5);
+            canvas.drawString(formatter.format(currentValueY),(float)(labelPosYUp.getX()-boundsY.getX()+1),
+                    (float)(labelPosYUp.getY()-boundsY.getY()));
+            canvas.drawString(formatter.format(currentValueYModified),(float)(labelPosYDown.getX()-boundsY.getX()+10),
+                    (float)(labelPosYDown.getY()-boundsY.getY()));
+            currentValueYIn=0;
+            counter=0;
+            canvas.setStroke(gridStrokeMin);
 
-        double labelX;
-        if (viewport[0][0] < 0.0 && 0.0 < viewport[1][0] && showAxis)
-            labelX = 0.0;
-        else
-            labelX = viewport[0][0];
+            while(currentValueYIn<=maxY || -currentValueYIn>minY) {
+                if ((counter+15)%10==0) {
+                    canvas.draw(new Line2D.Double(shiftPoint(xyToPoint(currentValueX, currentValueYIn), -6, 0),
+                            shiftPoint(xyToPoint(currentValueX, currentValueYIn), 6, 0)));
+                    canvas.draw(new Line2D.Double(shiftPoint(xyToPoint(currentValueX, -currentValueYIn), -6, 0),
+                            shiftPoint(xyToPoint(currentValueX, -currentValueYIn), 6, 0)));
+                    canvas.draw(new Line2D.Double(shiftPoint(xyToPoint(-currentValueX, currentValueYIn), -6, 0),
+                            shiftPoint(xyToPoint(-currentValueX, currentValueYIn), 6, 0)));
+                    canvas.draw(new Line2D.Double(shiftPoint(xyToPoint(-currentValueX, -currentValueYIn), -6, 0),
+                            shiftPoint(xyToPoint(-currentValueX, -currentValueYIn), 6, 0)));
+                }
+                else
+                {
+                    canvas.draw(new Line2D.Double(shiftPoint(xyToPoint(currentValueX, currentValueYIn),-3,0),
+                            shiftPoint(xyToPoint(currentValueX, currentValueYIn),3,0)));
+                    canvas.draw(new Line2D.Double(shiftPoint(xyToPoint(currentValueX, -currentValueYIn),-3,0),
+                            shiftPoint(xyToPoint(currentValueX, -currentValueYIn),3,0)));
+                    canvas.draw(new Line2D.Double(shiftPoint(xyToPoint(-currentValueX, currentValueYIn), -3, 0),
+                            shiftPoint(xyToPoint(-currentValueX, currentValueYIn), 3, 0)));
+                    canvas.draw(new Line2D.Double(shiftPoint(xyToPoint(-currentValueX, -currentValueYIn), -3, 0),
+                            shiftPoint(xyToPoint(-currentValueX, -currentValueYIn), 3, 0)));
+                }
+                counter++;
+                currentValueYIn += incrementYIn;
+            }
 
-        pos = viewport[0][0];
-        Point2D.Double point;
-        String label;
-        Rectangle2D bounds;
-        if (undoLog.size()<=3)
-            formatter.setMaximumFractionDigits(undoLog.size()+1);
-        for (step = (viewport[1][0] - viewport[0][0]) / 10.0; pos < viewport[1][0]; pos += step){
-            point = xyToPoint(pos, labelY);
-            label = formatter.format(pos);
-            bounds = labelFont.getStringBounds(label, context);
-            canvas.drawString(label, (float)(point.getX() +5), (float)(point.getY() - bounds.getHeight())+20);
+            counter = 0;
+            currentValueXIn = 0;
+            while(currentValueXIn <= maxX || -currentValueXIn > minX) {
+                if ((counter+15)%10==0) {
+                    canvas.draw(new Line2D.Double(shiftPoint(xyToPoint(currentValueXIn, currentValueY), 0, -6),
+                            shiftPoint(xyToPoint(currentValueXIn, currentValueY), 0, 6)));
+                    canvas.draw(new Line2D.Double(shiftPoint(xyToPoint(currentValueXIn, -currentValueY), 0, -6),
+                            shiftPoint(xyToPoint(currentValueXIn, -currentValueY), 0, 6)));
+                    canvas.draw(new Line2D.Double(shiftPoint(xyToPoint(-currentValueXIn, currentValueY), 0, -6),
+                            shiftPoint(xyToPoint(-currentValueXIn, currentValueY), 0, 6)));
+                    canvas.draw(new Line2D.Double(shiftPoint(xyToPoint(-currentValueXIn, -currentValueY), 0, -6),
+                            shiftPoint(xyToPoint(-currentValueXIn, -currentValueY), 0, 6)));
+                }
+                else
+                {
+                    canvas.draw(new Line2D.Double(shiftPoint(xyToPoint(currentValueXIn, currentValueY), 0, -3),
+                            shiftPoint(xyToPoint(currentValueXIn, currentValueY), 0, 3)));
+                    canvas.draw(new Line2D.Double(shiftPoint(xyToPoint(currentValueXIn, -currentValueY), 0, -3),
+                            shiftPoint(xyToPoint(currentValueXIn, -currentValueY), 0, 3)));
+                    canvas.draw(new Line2D.Double(shiftPoint(xyToPoint(-currentValueXIn, currentValueY), 0, -3),
+                            shiftPoint(xyToPoint(-currentValueXIn, currentValueY), 0, 3)));
+                    canvas.draw(new Line2D.Double(shiftPoint(xyToPoint(-currentValueXIn, -currentValueY), 0, -3),
+                            shiftPoint(xyToPoint(-currentValueXIn, -currentValueY), 0, 3)));
+                }
+                counter++;
+                currentValueXIn+=incrementXIn;
+            }
+
+            currentValueY += Double.parseDouble(formatter.format(incrementY).replace(',', '.'));
+            currentValueX += Double.parseDouble(formatter.format(incrementX).replace(',', '.'));
+            currentValueXModified -= Double.parseDouble(formatter.format(incrementX).replace(',', '.'));
+            currentValueYModified -= Double.parseDouble(formatter.format(incrementY).replace(',', '.'));
         }
-
-        pos = viewport[1][1];
-        for (step = (viewport[0][1] - viewport[1][1]) / 10.0; pos < viewport[0][1]; pos += step){
-            point = xyToPoint(labelX, pos);
-            label = formatter.format(pos);
-            bounds = labelFont.getStringBounds(label, context);
-            canvas.drawString(label, (float)(point.getX() +5), (float)(point.getY() - bounds.getHeight())+25);
-        }
-
     }
     protected void paintLabels(Graphics2D canvas) {
         if (selectedMarker>=0) {
@@ -458,17 +502,17 @@ public class GraphicsDisplay extends JPanel {
             canvas.setFont(labelFont);
             FontRenderContext context = canvas.getFontRenderContext();
             Rectangle2D bounds = labelFont.getStringBounds(label, context);
-            if ((graphicsData[selectedMarker][0]<=viewport[1][0] &&
-                    graphicsData[selectedMarker][0]>=(viewport[1][0]-(viewport[1][0]-viewport[0][0])/2))
-                    && (graphicsData[selectedMarker][1]<=viewport[0][1]
-                    && graphicsData[selectedMarker][1]>=(viewport[0][1]-(viewport[0][1]-viewport[1][1])/2)))
+            if ((graphicsData[selectedMarker][0] <= viewport[1][0] &&
+                    graphicsData[selectedMarker][0] >= (viewport[1][0]-(viewport[1][0]-viewport[0][0])/2))
+                    && (graphicsData[selectedMarker][1] <= viewport[0][1]
+                    && graphicsData[selectedMarker][1] >= (viewport[0][1]-(viewport[0][1]-viewport[1][1])/2)))
                 canvas.drawString(label, (float)(point.getX() - bounds.getWidth()), (float)(point.getY() + bounds.getHeight()));
-            else if((graphicsData[selectedMarker][0]<=viewport[1][0] &&
-                    graphicsData[selectedMarker][0]>=(viewport[1][0]-(viewport[1][0]-viewport[0][0])/2))
-                    && (graphicsData[selectedMarker][1])>=viewport[1][1] && graphicsData[selectedMarker][1]<=(viewport[1][1]-(viewport[1][1]-viewport[0][1])/2))
+            else if((graphicsData[selectedMarker][0] <= viewport[1][0] &&
+                    graphicsData[selectedMarker][0] >= (viewport[1][0]-(viewport[1][0]-viewport[0][0])/2))
+                    && (graphicsData[selectedMarker][1]) >= viewport[1][1] && graphicsData[selectedMarker][1]<=(viewport[1][1]-(viewport[1][1]-viewport[0][1])/2))
                 canvas.drawString(label, (float)(point.getX() - bounds.getWidth()), (float)(point.getY() - bounds.getHeight()));
-            else if((graphicsData[selectedMarker][1])>=viewport[1][1] && graphicsData[selectedMarker][1]<=(viewport[1][1]-(viewport[1][1]-viewport[0][1])/2)
-                    && (graphicsData[selectedMarker][0]>=viewport[0][0] && graphicsData[selectedMarker][0]<=viewport[0][0]+(viewport[1][0]-viewport[0][0])/2))
+            else if((graphicsData[selectedMarker][1]) >= viewport[1][1] && graphicsData[selectedMarker][1]<=(viewport[1][1]-(viewport[1][1]-viewport[0][1])/2)
+                    && (graphicsData[selectedMarker][0] >= viewport[0][0] && graphicsData[selectedMarker][0]<=viewport[0][0]+(viewport[1][0]-viewport[0][0])/2))
                 canvas.drawString(label, (float)(point.getX() + 5.0), (float)(point.getY() - bounds.getHeight()));
 
             else {
@@ -484,7 +528,7 @@ public class GraphicsDisplay extends JPanel {
     }
 
     protected Double[] pointToXY(int x, int y) {
-        return new Double[]{viewport[0][0]+(double)x/scaleX, viewport[0][1]-(double)y/scaleY};
+        return new Double[]{viewport[0][0] + (double)x/scaleX, viewport[0][1]-(double)y/scaleY};
     }
 
     protected int findPoint(int x, int y) {
